@@ -1,0 +1,68 @@
+# Multitenant Recipe Webapp Plan
+
+## 1. Requirements & Design
+- **Features:** User registration/login, recipe CRUD, tenant management, search/filter recipes.
+- **Multitenancy Model:**  
+  - Shared database, shared schema (all tables include `tenant_id`).
+- **Tech Stack:**  
+  - **Frontend:** React  
+  - **Auth:** Supabase Auth  
+  - **Database:** Supabase PostgreSQL  
+  - **Backend:** Python (FastAPI or Flask)  
+  - **API:** RESTful endpoints for recipes, users, tenants  
+  - **Deployment:** Docker container for backend
+
+## 2. Database Schema (Supabase PostgreSQL)
+- **tenants**: `id`, `name`, `created_at`
+- **users**: `id`, `email`, `tenant_id`, `role`, `created_at`
+- **recipes**: `id`, `tenant_id`, `user_id`, `title`, `ingredients`, `instructions`, `created_at`
+- **Relationships:**  
+  - Each user belongs to a tenant (`tenant_id` foreign key).
+  - Each recipe belongs to a user and tenant.
+
+## 3. Authentication & Authorization
+- Use **Supabase Auth** for user sign-up/sign-in.
+- Store `tenant_id` in user metadata or a separate table.
+- Backend validates Supabase JWT on every request.
+- All API endpoints require JWT and enforce tenant isolation.
+
+## 4. Backend API (Python, RESTful)
+- Use **FastAPI** or **Flask**.
+- **Endpoints:**
+  - `/api/tenants` (GET, POST, PUT, DELETE)
+  - `/api/users` (GET, POST, PUT, DELETE)
+  - `/api/recipes` (GET, POST, PUT, DELETE)
+- Middleware to:
+  - Validate Supabase JWT.
+  - Extract `tenant_id` from user.
+  - Filter all queries by `tenant_id`.
+
+## 5. Frontend (React)
+- Integrate with Supabase Auth for login/signup.
+- Store user session and `tenant_id` after login.
+- Recipe management UI (add, edit, view, delete).
+- All API requests include user’s JWT for backend validation.
+
+## 6. Multitenancy Enforcement
+- **Backend:**  
+  - All queries filter by `tenant_id`.
+  - Users can only access/modify data for their tenant.
+- **Frontend:**  
+  - Only show data for the logged-in user’s tenant.
+
+## 7. Testing
+- Unit and integration tests for tenant isolation in backend.
+- UI tests for recipe flows and tenant switching (if needed).
+
+## 8. Deployment (Docker)
+- **Dockerize the backend:**
+  - Create a `Dockerfile` for the Python API.
+  - Use environment variables for DB connection and Supabase secrets.
+  - Build and run the container.
+- **Frontend:** Deploy separately (e.g., Vercel, Netlify).
+- **Database & Auth:** Managed by Supabase.
+
+## 9. Monitoring & Security
+- Monitor for unauthorized access.
+- Secure API endpoints (JWT validation, tenant checks).
+-
